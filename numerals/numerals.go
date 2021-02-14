@@ -26,6 +26,8 @@ var nextChord = map[int][]int{
 	6: {1, 2, 4, 5},
 }
 
+const PART_LENGTH int = 16
+
 func pickFirst() int {
 	// Prefer starting with 1 or 6
 	val := rand.Intn(100)
@@ -50,7 +52,7 @@ func pickNext(cur int) (int, error){
 func CreatePart() ([]int, error) {
 	var part []int
 	part = append(part, pickFirst())
-	for len(part) < 16 {
+	for len(part) < PART_LENGTH {
 		next, err := pickNext(part[len(part)-1])
 		if err != nil {
 			return nil, err
