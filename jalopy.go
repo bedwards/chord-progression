@@ -4,22 +4,19 @@ import (
     "flag"
     "fmt"
     "os"
+
+    "jalopymusic.com/jalopy/numerals"
+    "jalopymusic.com/jalopy/tonality"
 )
 
 func main() {
-
     songCmd := flag.NewFlagSet("song", flag.ExitOnError)
-    songParts := songCmd.String("parts", "aabcabcdacc", "parts")
+    songKey := songCmd.String("key", "D#", "key")
+    songParts := songCmd.String("parts", "aba", "parts")
 
-    fooCmd := flag.NewFlagSet("foo", flag.ExitOnError)
-    fooEnable := fooCmd.Bool("enable", false, "enable")
-    fooName := fooCmd.String("name", "", "name")
-
-    barCmd := flag.NewFlagSet("bar", flag.ExitOnError)
-    barLevel := barCmd.Int("level", 0, "level")
 
     if len(os.Args) < 2 {
-        fmt.Println("expected 'foo' or 'bar' subcommands")
+        fmt.Println("expected 'song' subcommand")
         os.Exit(1)
     }
 
@@ -27,20 +24,46 @@ func main() {
 
     case "song":
         songCmd.Parse(os.Args[2:])
-        fmt.Println(*songParts)
-    case "foo":
-        fooCmd.Parse(os.Args[2:])
-        fmt.Println("subcommand 'foo'")
-        fmt.Println("  enable:", *fooEnable)
-        fmt.Println("  name:", *fooName)
-        fmt.Println("  tail:", fooCmd.Args())
-    case "bar":
-        barCmd.Parse(os.Args[2:])
-        fmt.Println("subcommand 'bar'")
-        fmt.Println("  level:", *barLevel)
-        fmt.Println("  tail:", barCmd.Args())
+        if *songParts != "aba" {
+            fmt.Printf("Unsupported song definition: %#v\n", songParts)
+            os.Exit(1)
+        }
+        n := numerals.New()
+        song, err := n.CreateSongABA()
+        if err != nil {
+            fmt.Printf("Song is broken: %#v\n", err)
+            os.Exit(1)
+        }
+
+        fmt.Printf("%#v\n", song.A[:4])
+        fmt.Printf("%#v\n", song.A[4:8])
+        fmt.Printf("%#v\n", song.A[8:12])
+        fmt.Printf("%#v\n", song.A[12:16])
+        fmt.Printf("----\n")
+        fmt.Printf("%#v\n", song.B[:4])
+        fmt.Printf("%#v\n", song.B[4:8])
+        fmt.Printf("%#v\n", song.B[8:12])
+        fmt.Printf("%#v\n", song.B[12:16])
+        fmt.Printf("----\n")
+        
+        t := tonality.New()
+        a, err := t.InKey(*songKey, song.A)
+        if err != nil {
+            fmt.Printf("Song is broken: %#v\n", err)
+            os.Exit(1)
+        }
+        b, err := t.InKey(*songKey, song.B)
+        if err != nil {
+            fmt.Printf("Song is broken: %#v\n", err)
+            os.Exit(1)
+        }
+
+        fmt.Println(a)
+        fmt.Println("----")
+        fmt.Println(b)
+
     default:
-        fmt.Println("expected 'foo' or 'bar' subcommands")
+        fmt.Println("expected 'song' subcommand")
         os.Exit(1)
     }
 }
